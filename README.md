@@ -2,20 +2,47 @@
 
 Streamlit app that queries `samples.nyctaxi.trips` through a Databricks SQL warehouse.
 
-## Run locally
+The app code is unchanged from local development. This step deploys it to a Databricks workspace with the CLI.
 
-Use the same Databricks CLI profile you already use for the workspace. `Config()` picks up that profile locally and the app service principal once the app is deployed — do not hardcode tokens.
+There is no `databricks apps sync` command. Upload with `databricks sync`, then deploy the app from that workspace path.
+
+## 1. Create the app (once)
 
 ```bash
-# from this directory
-databricks apps run-local --prepare-environment --debug \
-  --env DATABRICKS_WAREHOUSE_ID=<your-warehouse-id>
+databricks apps create helvetia-data-app --json '{
+  "description": "Helvetia taxi fare Streamlit app"
+}'
 ```
 
-`--prepare-environment` creates a local venv with `uv` and installs `requirements.txt`. The proxy listens on http://localhost:8001.
+Bind the SQL warehouse in the UI: **Compute > Apps > helvetia-data-app > Edit > Resources > SQL warehouse**, key `sql-warehouse` (must match `valueFrom` in `app.yaml`). Grant **Can use**.
 
-If you already have a warehouse named `helvetia-wh` in the workspace:
+## 2. Upload source
 
 ```bash
-databricks warehouses list --output json | jq -r '.[] | select(.name=="helvetia-wh") | .id'
+# replace the workspace path with your user folder
+SOURCE=/Workspace/Users/<you>@<company>/helvetia-data-app
+databricks sync --watch . "$SOURCE"
+```
+
+`--watch` keeps uploading as you edit. For a one-shot upload:
+
+```bash
+databricks sync . "$SOURCE"
+```
+
+## 3. Deploy and inspect
+
+```bash
+databricks apps deploy helvetia-data-app --source-code-path "$SOURCE"
+databricks apps get helvetia-data-app
+databricks apps logs helvetia-data-app
+```
+
+Open the URL from `databricks apps get`. Auth inside the app is still `Config()` — on the platform that is the app service principal, not your laptop profile.
+
+## Run locally (still valid)
+
+```bash
+databricks apps run-local --prepare-environment --debug \
+  --env DATABRICKS_WAREHOUSE_ID=<your-warehouse-id>
 ```

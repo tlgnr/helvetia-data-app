@@ -1,0 +1,9 @@
+version: 1
+name: "Helvetia data app"
+description: "Streamlit dashboard that queries Unity Catalog through a SQL warehouse."
+
+resource_specs:
+  - name: "sql-warehouse"
+    description: "The SQL warehouse the app uses to query data."
+    sql_warehouse_spec:
+      permission: "CAN_USE"

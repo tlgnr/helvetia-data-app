@@ -13,7 +13,8 @@ variables:
     description: Databricks-backed secret scope that holds external-api-key
     default: helvetia-app
   deploy_sp_client_id:
-    description: Application ID of the environment deploy service principal (test/prod run_as)
+    description: Application ID of the environment deploy SP (test/prod run_as). Unused on the local dev target.
+    default: ""
 
 targets:
   dev:

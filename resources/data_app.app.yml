@@ -14,5 +14,5 @@ resources:
           description: Demo secret injected into the app process
           secret:
             scope: ${var.secret_scope}
-            key: secret
+            key: external-api-key
             permission: READ

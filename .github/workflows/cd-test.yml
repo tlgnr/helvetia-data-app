@@ -1,0 +1,41 @@
+name: CD test
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-test:
+    runs-on: ubuntu-latest
+    environment: test
+    env:
+      DATABRICKS_AUTH_TYPE: github-oidc
+      DATABRICKS_HOST: ${{ vars.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
+      APP_NAME: helvetia-data-app-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: databricks/setup-cli@main
+      - name: Validate
+        run: databricks bundle validate --strict --target test --var deploy_sp_client_id=$DATABRICKS_CLIENT_ID
+      - name: Deploy
+        run: databricks bundle deploy --target test --var deploy_sp_client_id=$DATABRICKS_CLIENT_ID
+      - name: Start or restart app
+        run: databricks bundle run data_app --target test --var deploy_sp_client_id=$DATABRICKS_CLIENT_ID
+      - name: Wait until RUNNING
+        run: |
+          for i in $(seq 1 20); do
+            STATE=$(databricks apps get "$APP_NAME" --output json | jq -r '.app_status.state // .compute_status.state // empty')
+            echo "Attempt $i/20: state=$STATE"
+            if [ "$STATE" = "RUNNING" ]; then
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "App did not reach RUNNING" >&2
+          databricks apps logs "$APP_NAME" || true
+          exit 1

@@ -16,6 +16,7 @@ import pandas as pd
 import streamlit as st
 from databricks import sql
 from databricks.sdk.core import Config
+from lib import mask_secret, predict_fare, trips_query
 
 assert os.getenv("DATABRICKS_WAREHOUSE_ID"), (
     "DATABRICKS_WAREHOUSE_ID must be set. For run-local, pass "
@@ -30,22 +31,20 @@ assert _api_key, (
 )
 
 
-def mask_secret(value: str, visible: int = 4) -> str:
-    if len(value) <= visible:
-        return "*" * len(value)
-    return "*" * (len(value) - visible) + value[-visible:]
-
-
-def sql_query(query: str) -> pd.DataFrame:
+@st.cache_resource
+def _sql_connection():
     cfg = Config()
-    with sql.connect(
+    return sql.connect(
         server_hostname=cfg.host,
         http_path=f"/sql/1.0/warehouses/{os.getenv('DATABRICKS_WAREHOUSE_ID')}",
         credentials_provider=lambda: cfg.authenticate,
-    ) as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(query)
-            return cursor.fetchall_arrow().to_pandas()
+    )
+
+
+def sql_query(query: str) -> pd.DataFrame:
+    with _sql_connection().cursor() as cursor:
+        cursor.execute(query)
+        return cursor.fetchall_arrow().to_pandas()
 
 
 st.set_page_config(layout="wide", page_title="Helvetia taxi fares")
@@ -53,7 +52,7 @@ st.set_page_config(layout="wide", page_title="Helvetia taxi fares")
 
 @st.cache_data(ttl=30)
 def get_data():
-    return sql_query("select * from samples.nyctaxi.trips limit 5000")
+    return sql_query(trips_query(5000))
 
 
 data = get_data()
@@ -67,8 +66,7 @@ with col2:
     st.subheader("Predict fare")
     pickup = st.text_input("From (zipcode)", value="10003")
     dropoff = st.text_input("To (zipcode)", value="11238")
-    subset = data[(data["pickup_zip"] == int(pickup)) & (data["dropoff_zip"] == int(dropoff))]
-    fare = subset["fare_amount"].mean() if len(subset) > 0 else 99
+    fare = predict_fare(data, int(pickup), int(dropoff))
     st.write(f"# **${fare:.2f}**")
 
 st.dataframe(data=data, height=600, use_container_width=True)

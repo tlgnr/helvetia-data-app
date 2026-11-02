@@ -13,12 +13,21 @@ variables:
     description: Databricks-backed secret scope that holds external-api-key
     default: helvetia-app
   deploy_sp_client_id:
-    description: Application ID of the environment deploy service principal (test/prod run_as)
+    description: Application ID of the environment deploy service principal
 
+# personal = laptop (development mode prefixes resources with the user).
+# dev/test/prod = shared workspaces, stable app names, CI run_as the env SP.
 targets:
-  dev:
+  personal:
     default: true
     mode: development
+
+  dev:
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/${var.deploy_sp_client_id}/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      service_principal_name: ${var.deploy_sp_client_id}
 
   test:
     mode: production

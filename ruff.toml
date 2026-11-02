@@ -1,0 +1,5 @@
+target-version = "py311"
+src = ["src/app", "tests"]
+
+[lint.per-file-ignores]
+"src/app/app.py" = ["E402"]

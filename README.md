@@ -1,40 +1,49 @@
 # Helvetia data app
 
-Declarative Automation Bundle that deploys the Streamlit app plus its warehouse and secret bindings.
+Streamlit Databricks App with a Declarative Automation Bundle and GitHub Actions CI/CD.
 
-The secret **value** is not in this repository. The bundle names a scope and key; Databricks Apps injects it as `EXTERNAL_API_KEY`.
+Authentication in GitHub is **Databricks-native OIDC** (`DATABRICKS_AUTH_TYPE=github-oidc`). There is no Databricks PAT and no Azure client secret in this repository.
 
-## One-time: store the secret
+## Branch and promotion model
 
-```bash
-databricks secrets put-secret helvetia-app external-api-key
-```
+| Event | Workflow | Workspace |
+| --- | --- | --- |
+| PR into `develop` or `main` | `ci.yml` lint + unit tests | none |
+| PR into `main` | `integration.yml` | **dev** |
+| Merge into `main` | `cd-test.yml` | **test** |
+| GitHub Release published | `cd-prod.yml` | **prod** (environment approval) |
 
-Use a dummy value for the demo. Terraform created the `helvetia-app` scope; this command only writes the key.
-
-## Deploy with the bundle
-
-```bash
-databricks bundle validate --strict --target dev
-databricks bundle deploy --target dev
-databricks bundle run data_app --target dev
-databricks apps logs helvetia-data-app-dev
-```
-
-`warehouse_id` is resolved with `lookup` against a warehouse named `helvetia-wh`. `app.yaml` still uses `valueFrom`, never a hardcoded warehouse ID or secret.
-
-For `test` and `prod`:
-
-```bash
-databricks bundle deploy --target test --var deploy_sp_client_id=<sp-application-id>
-databricks bundle run data_app --target test --var deploy_sp_client_id=<sp-application-id>
-```
-
-## Run locally
+## Local
 
 ```bash
 cd src/app
 databricks apps run-local --prepare-environment --debug \
-  --env DATABRICKS_WAREHOUSE_ID=<your-warehouse-id> \
+  --env DATABRICKS_WAREHOUSE_ID=<id> \
   --env EXTERNAL_API_KEY=local-only-dummy
 ```
+
+Personal bundle deploy (development mode, name prefix):
+
+```bash
+databricks bundle deploy --target personal
+databricks bundle run data_app --target personal
+```
+
+## GitHub Environments
+
+After Terraform apply:
+
+```bash
+export GITHUB_REPOSITORY=<owner>/helvetia-data-app
+./scripts/setup_github.sh
+```
+
+Set a required reviewer on the `prod` environment. Host and client ID are **variables**, not secrets.
+
+## Secret
+
+```bash
+databricks secrets put-secret helvetia-app external-api-key --host <workspace-url>
+```
+
+The bundle only references scope `helvetia-app` and key `external-api-key`.

@@ -10,7 +10,7 @@ variables:
     lookup:
       warehouse: helvetia-wh
   secret_scope:
-    description: Databricks-backed secret scope that holds key "secret"
+    description: Databricks-backed secret scope that holds external-api-key
     default: helvetia-app
   deploy_sp_client_id:
     description: Application ID of the environment deploy SP (dev/test/prod run_as). Unused on the personal target.

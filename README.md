@@ -43,7 +43,7 @@ Set a required reviewer on the `prod` environment. Host and client ID are **vari
 ## Secret
 
 ```bash
-databricks secrets put-secret helvetia-app secret --host <workspace-url>
+databricks secrets put-secret helvetia-app external-api-key --host <workspace-url>
 ```
 
-The bundle only references scope `helvetia-app` and key `secret`.
+The bundle only references scope `helvetia-app` and key `external-api-key`.

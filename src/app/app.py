@@ -26,7 +26,7 @@ assert os.getenv("DATABRICKS_WAREHOUSE_ID"), (
 _api_key = os.getenv("EXTERNAL_API_KEY", "")
 assert _api_key, (
     "EXTERNAL_API_KEY is missing. Locally pass --env EXTERNAL_API_KEY=.... "
-    "Deployed, the bundle maps secret scope helvetia-app / key secret "
+    "Deployed, the bundle maps secret scope helvetia-app / key external-api-key "
     "onto this env var. Never put the value in app.yaml or databricks.yml."
 )
 

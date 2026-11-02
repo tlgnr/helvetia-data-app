@@ -7,5 +7,22 @@ __pycache__/
 .DS_Store
 *.pyc
 .env
+.env.*
+!.env.example
 .databricks/
 .databricks-app-debug/
+.python-version
+uv.lock
+src/helvetia_data_app/
+
+# uv / run-local may drop these at repo root; app deps live in src/app/requirements.txt
+/pyproject.toml
+
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+credentials.json
+*.pem
+*.key

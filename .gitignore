@@ -18,6 +18,7 @@ src/helvetia_data_app/
 # uv / run-local may drop these at repo root; app deps live in src/app/requirements.txt
 /pyproject.toml
 
+# Infra must not land in this app repo
 .terraform/
 *.tfstate
 *.tfstate.*

@@ -1,0 +1,18 @@
+resources:
+  apps:
+    data_app:
+      name: helvetia-data-app-${bundle.target}
+      description: Helvetia taxi fare Streamlit app
+      source_code_path: ../src/app
+      resources:
+        - name: sql-warehouse
+          description: SQL warehouse for nyctaxi queries
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: CAN_USE
+        - name: external-api-key
+          description: Demo secret injected into the app process
+          secret:
+            scope: ${var.secret_scope}
+            key: external-api-key
+            permission: READ

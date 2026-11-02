@@ -19,9 +19,21 @@ from databricks.sdk.core import Config
 
 assert os.getenv("DATABRICKS_WAREHOUSE_ID"), (
     "DATABRICKS_WAREHOUSE_ID must be set. For run-local, pass "
-    "--env DATABRICKS_WAREHOUSE_ID=<id>. In the workspace, bind a SQL warehouse "
-    "resource whose key is sql-warehouse (see app.yaml valueFrom)."
+    "--env DATABRICKS_WAREHOUSE_ID=<id>. The bundle binds resource sql-warehouse."
 )
+
+_api_key = os.getenv("EXTERNAL_API_KEY", "")
+assert _api_key, (
+    "EXTERNAL_API_KEY is missing. Locally pass --env EXTERNAL_API_KEY=.... "
+    "Deployed, the bundle maps secret scope helvetia-app / key external-api-key "
+    "onto this env var. Never put the value in app.yaml or databricks.yml."
+)
+
+
+def mask_secret(value: str, visible: int = 4) -> str:
+    if len(value) <= visible:
+        return "*" * len(value)
+    return "*" * (len(value) - visible) + value[-visible:]
 
 
 def sql_query(query: str) -> pd.DataFrame:
@@ -47,6 +59,7 @@ def get_data():
 data = get_data()
 
 st.header("Taxi fare distribution")
+st.caption(f"External API key (masked): `{mask_secret(_api_key)}`")
 col1, col2 = st.columns([3, 1])
 with col1:
     st.scatter_chart(data=data, height=400, width=700, y="fare_amount", x="trip_distance")

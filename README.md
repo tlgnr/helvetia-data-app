@@ -1,48 +1,40 @@
 # Helvetia data app
 
-Streamlit app that queries `samples.nyctaxi.trips` through a Databricks SQL warehouse.
+Declarative Automation Bundle that deploys the Streamlit app plus its warehouse and secret bindings.
 
-The app code is unchanged from local development. This step deploys it to a Databricks workspace with the CLI.
+The secret **value** is not in this repository. The bundle names a scope and key; Databricks Apps injects it as `EXTERNAL_API_KEY`.
 
-There is no `databricks apps sync` command. Upload with `databricks sync`, then deploy the app from that workspace path.
-
-## 1. Create the app (once)
+## One-time: store the secret
 
 ```bash
-databricks apps create helvetia-data-app --json '{
-  "description": "Helvetia taxi fare Streamlit app"
-}'
+databricks secrets put-secret helvetia-app external-api-key
 ```
 
-Bind the SQL warehouse in the UI: **Compute > Apps > helvetia-data-app > Edit > Resources > SQL warehouse**, key `sql-warehouse` (must match `valueFrom` in `app.yaml`). Grant **Can use**.
+Use a dummy value for the demo. Terraform created the `helvetia-app` scope; this command only writes the key.
 
-## 2. Upload source
+## Deploy with the bundle
 
 ```bash
-# replace the workspace path with your user folder
-SOURCE=/Workspace/Users/<you>@<company>/helvetia-data-app
-databricks sync --watch . "$SOURCE"
+databricks bundle validate --strict --target dev
+databricks bundle deploy --target dev
+databricks bundle run data_app --target dev
+databricks apps logs helvetia-data-app-dev
 ```
 
-`--watch` keeps uploading as you edit. For a one-shot upload:
+`warehouse_id` is resolved with `lookup` against a warehouse named `helvetia-wh`. `app.yaml` still uses `valueFrom`, never a hardcoded warehouse ID or secret.
+
+For `test` and `prod`:
 
 ```bash
-databricks sync . "$SOURCE"
+databricks bundle deploy --target test --var deploy_sp_client_id=<sp-application-id>
+databricks bundle run data_app --target test --var deploy_sp_client_id=<sp-application-id>
 ```
 
-## 3. Deploy and inspect
+## Run locally
 
 ```bash
-databricks apps deploy helvetia-data-app --source-code-path "$SOURCE"
-databricks apps get helvetia-data-app
-databricks apps logs helvetia-data-app
-```
-
-Open the URL from `databricks apps get`. Auth inside the app is still `Config()` — on the platform that is the app service principal, not your laptop profile.
-
-## Run locally (still valid)
-
-```bash
+cd src/app
 databricks apps run-local --prepare-environment --debug \
-  --env DATABRICKS_WAREHOUSE_ID=<your-warehouse-id>
+  --env DATABRICKS_WAREHOUSE_ID=<your-warehouse-id> \
+  --env EXTERNAL_API_KEY=local-only-dummy
 ```

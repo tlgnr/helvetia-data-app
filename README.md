@@ -7,7 +7,7 @@ The secret **value** is not in this repository. The bundle names a scope and key
 ## One-time: store the secret
 
 ```bash
-databricks secrets put-secret helvetia-app external-api-key
+databricks secrets put-secret helvetia-app secret
 ```
 
 Use a dummy value for the demo. Terraform created the `helvetia-app` scope; this command only writes the key.

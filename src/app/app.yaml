@@ -7,6 +7,6 @@ env:
   - name: DATABRICKS_WAREHOUSE_ID
     valueFrom: sql-warehouse
   - name: EXTERNAL_API_KEY
-    valueFrom: external-api-key
+    valueFrom: secret
   - name: STREAMLIT_BROWSER_GATHER_USAGE_STATS
     value: "false"

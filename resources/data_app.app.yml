@@ -10,9 +10,9 @@ resources:
           sql_warehouse:
             id: ${var.warehouse_id}
             permission: CAN_USE
-        - name: external-api-key
+        - name: secret
           description: Demo secret injected into the app process
           secret:
             scope: ${var.secret_scope}
-            key: external-api-key
+            key: secret
             permission: READ

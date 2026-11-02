@@ -57,7 +57,7 @@ def get_data():
 
 data = get_data()
 
-st.header("Taxi fare distribution")
+st.header("Taxi fare distribution (Helvetia)")
 st.caption(f"External API key (masked): `{mask_secret(_api_key)}`")
 col1, col2 = st.columns([3, 1])
 with col1:

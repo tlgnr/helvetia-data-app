@@ -8,8 +8,7 @@ Authentication in GitHub is **Databricks-native OIDC** (`DATABRICKS_AUTH_TYPE=gi
 
 | Event | Workflow | Workspace |
 | --- | --- | --- |
-| PR into `develop` or `main` | `ci.yml` lint + unit tests | none |
-| PR into `main` | `integration.yml` | **dev** |
+| PR from a feature branch into `main` | `ci.yml` + `integration.yml` | **dev** (integration) |
 | Merge into `main` | `cd-test.yml` | **test** |
 | GitHub Release published | `cd-prod.yml` | **prod** (environment approval) |
 

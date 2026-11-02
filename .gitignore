@@ -7,5 +7,17 @@ __pycache__/
 .DS_Store
 *.pyc
 .env
+.env.*
+!.env.example
 .databricks/
 .databricks-app-debug/
+
+# Infra must not land in this app repo
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+credentials.json
+*.pem
+*.key

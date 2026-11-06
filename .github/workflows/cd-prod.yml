@@ -3,6 +3,12 @@ name: CD prod
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to deploy (emergency rollback only)
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -18,7 +24,36 @@ jobs:
       DATABRICKS_CLIENT_ID: ${{ vars.DATABRICKS_CLIENT_ID }}
       APP_NAME: helvetia-data-app-prod
     steps:
+      - name: Resolve deploy ref
+        id: ref
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+            TAG="${TAG#refs/tags/}"
+            if [ -z "$TAG" ]; then
+              echo "tag input is required for manual rollback" >&2
+              exit 1
+            fi
+            echo "ref=refs/tags/${TAG}" >> "$GITHUB_OUTPUT"
+            echo "Manual rollback requested for tag ${TAG}"
+          else
+            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
+            echo "Release deploy for ${{ github.ref }}"
+          fi
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+      - name: Confirm checked-out tag
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          EXPECTED="${{ inputs.tag }}"
+          EXPECTED="${EXPECTED#refs/tags/}"
+          ACTUAL=$(git describe --tags --exact-match HEAD)
+          echo "Expected tag=${EXPECTED} actual=${ACTUAL}"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "Checked-out commit is not exactly tag ${EXPECTED}" >&2
+            exit 1
+          fi
       - uses: databricks/setup-cli@main
       - name: Validate
         run: databricks bundle validate --strict --target prod --var deploy_sp_client_id=$DATABRICKS_CLIENT_ID

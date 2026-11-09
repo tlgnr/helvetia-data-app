@@ -1,5 +1,7 @@
 # Helvetia data app
 
+## Introduction
+
 Streamlit Databricks App with a Declarative Automation Bundle and GitHub Actions CI/CD.
 
 Authentication in GitHub is **Databricks-native OIDC** (`DATABRICKS_AUTH_TYPE=github-oidc`). There is no Databricks PAT and no Azure client secret in this repository.
